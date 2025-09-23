@@ -11,7 +11,7 @@ public class Friend implements Comparable<Friend> {
     }
 
     public synchronized void throwBallTo(Friend catcher) {
-        System.out.format("%s: %s кинул мне мяч!%n", catcher.getName(), this.name);
+        System.out.format("%s: %s threw me a ball!%n", catcher.getName(), this.name);
         catcher.throwBallTo(this);
     }
 
