@@ -1,72 +1,83 @@
 # Java Thread Deadlock Example
 
-This is a simple educational Java project demonstrating **deadlocks** using threads and synchronized methods.  
+Educational Java project demonstrating a **classic deadlock** scenario using threads and `synchronized` methods.
+
+The goal of this repository is not to provide production-ready code, but to clearly show how a deadlock can occur when multiple threads acquire locks in an inconsistent order.
+
+---
 
 ## Description
 
-The project contains a `Friend` class that models two friends throwing a ball to each other. Each `Friend` has a synchronized method `throwBallTo()` which calls the same method on the other `Friend`.  
+The project models two `Friend` objects throwing a ball to each other.
 
-When executed with two threads, each thread tries to throw the ball to the other friend **simultaneously**, which can lead to a **deadlock** situation.  
+Each `Friend` has a synchronized method `throwBallTo(Friend)`.
+When two threads call this method simultaneously on different objects, a **circular lock dependency** may occur:
 
-This example is intended to help understand:
+* Thread A locks `Friend #1` and waits for `Friend #2`
+* Thread B locks `Friend #2` and waits for `Friend #1`
 
-- Java threads
-- Synchronized methods
-- Deadlocks in concurrent programming
+Result: both threads are blocked forever.
 
-## Classes
+This example is intentionally minimal and deterministic enough to reliably demonstrate the problem.
 
-### Friend
+---
 
-```java
-public class Friend implements Comparable<Friend> {
+## Project Structure
 
-    private final String name;
+### `Friend`
 
-    public Friend(String name) {
-        this.name = name;
-    }
+Represents a participant in the interaction.
 
-    public String getName() {
-        return this.name;
-    }
+**Fields**
 
-    public synchronized void throwBallTo(Friend catcher) {
-        System.out.format("%s: %s threw the ball to me!%n", catcher.getName(), this.name);
-        catcher.throwBallTo(this);
-    }
+* `name` — immutable identifier of the friend
 
-    @Override
-    public int compareTo(Friend o) {
-        return this.getName().compareTo(o.getName());
-    }
-}
-Fields: name — the name of the friend.
-Methods:
-throwBallTo(Friend) — synchronized method to simulate throwing a ball.
-compareTo(Friend) — compares friends by name (for sorting).
-Loader
-public class Loader {
+**Methods**
 
-    public static void main(String[] args) {
-        final Friend vasya = new Friend("Vasya");
-        final Friend vitya = new Friend("Vitya");
+* `throwBallTo(Friend)` — synchronized method that may cause a deadlock
+* `compareTo(Friend)` — compares friends by name (not used directly, included for future extensions)
 
-        new Thread(() -> vasya.throwBallTo(vitya)).start();
-        new Thread(() -> vitya.throwBallTo(vasya)).start();
-    }
-}
-Launches two threads that call throwBallTo() on each other.
-Demonstrates a classic deadlock scenario.
-How to Run
-Clone the repository:
-git clone <repository-url>
-Compile the project:
+---
+
+### `Loader`
+
+Entry point of the application.
+
+Creates two `Friend` instances and starts two threads that call `throwBallTo()` on each other simultaneously.
+
+---
+
+## How to Run
+
+Compile the sources:
+
+```bash
 javac Friend.java Loader.java
+```
+
 Run the program:
+
+```bash
 java Loader
-Observe how the program may freeze due to deadlock.
-Key Concepts
-Threading: Running multiple tasks simultaneously.
-Synchronized methods: Ensure only one thread can execute a method at a time per object.
-Deadlock: A situation where two or more threads are blocked forever, each waiting for the other to release a lock.
+```
+
+In most runs, the application will freeze due to a deadlock.
+
+---
+
+## Key Concepts Demonstrated
+
+* Java threads
+* Intrinsic locks (`synchronized`)
+* Circular wait condition
+* Deadlocks in concurrent programming
+
+---
+
+## Notes
+
+* The recursive call inside the synchronized method is intentional and used only for demonstration purposes.
+* This code **must not** be used as a design reference for real applications.
+
+The repository exists purely as a learning and demonstration artifact.
+
